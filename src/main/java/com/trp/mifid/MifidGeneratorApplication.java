@@ -1,4 +1,4 @@
-package com.trp.mifid.app;
+package com.trp.mifid;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
