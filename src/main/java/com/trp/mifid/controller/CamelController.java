@@ -16,7 +16,7 @@ public class CamelController {
     ProducerTemplate producerTemplate;
 
     @RequestMapping(value = "/run")
-    public void startCamel() {
+    public void startOnDemandProcess() {
         producerTemplate.sendBody("direct:onDemandTrigger", "Manually trigger the MiFID generation process");
     }
 }

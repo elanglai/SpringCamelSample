@@ -12,24 +12,28 @@ public class MiFidCamelRoute extends RouteBuilder {
 
         // On Demand Trigger
         from("direct:onDemandTrigger")
+                .routeId("onDemandTriggerRoute")
+                .routeDescription("This route is called to immediately invoke the MiFID II data generation process.")
                 .log("onDemandTrigger: ${body}")
                 .to("direct:executeProcess");
 
         // Scheduled Trigger
         from("direct:scheduledTrigger")
+                .routeId("scheduledTriggerRoute")
                 .log("scheduledTrigger: ${body}");
 
 
         // Run MiFID Generation Process
         from("direct:executeProcess")
+                .routeId("executeProcessRoute")
                 .log("executeProcess: ${body}")
-                // header property defines whether if simulated mode
                 // header property defines whether if simulated mode
                 .bean("SourceFileValidator", "validate")
                 .to("direct:exportGeneratedFile");
 
 
         from("direct:exportGeneratedFile")
+                .routeId("exportGeneratedFile")
                 .log("exportGeneratedFile: ${body}");
 
 
