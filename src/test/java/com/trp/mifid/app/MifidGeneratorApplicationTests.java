@@ -1,4 +1,4 @@
-package com.trp.mifid.MifidGenerator;
+package com.trp.mifid.app;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
