@@ -43,22 +43,30 @@ public class MiFidCamelRoute extends RouteBuilder {
                         .bean("SourceFileValidator", "validate")
                         .bean("MiFidGenerator", "generate")
                         .to("direct:exportGeneratedFile")
-                .endChoice()
+                .end()
                 .to("direct:exportGeneratedFile");
 
         // Load source files
-        from("file:/ReportingAutomations/TEST/InputFiles/MIFIDII?noop=true")
+        // The inbound source files are deemed ready when the marker file "ready" is defined
+        from("file:/ReportingAutomations/TEST/InputFiles/MIFIDII?doneFileName=ready")
                 .routeId("loadSourceFiles")
                 .routeDescription("Load the source files into the in-memory data model.")
-                .unmarshal().csv()
-                .bean("SourceFileImport", "importSource(${CamelFileName}, ${body})")
-                .log(INFO, "loadedSourceFiles: ${CamelFileName}");
+                .log(ERROR, "Load source files was triggered")
+                //.unmarshal()
+                //.csv()
+                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})")
+                .log(INFO, "loadedSourceFiles: ${header.CamelFileName}");
+
+        // If an file error is encountered, Camel's emdpoin, the exception is seet to direct:file-error
+        from("direct:file-error")
+                .routeId("fileErrorRoutr")
+                .log(ERROR, "File error detected");
 
         // Generate the MiFID summary result
         from("direct:generateMiFID")
-                .routeId("exportGeneratedFile")
+                .routeId("generateMiFID")
                 .routeDescription("Generated the MiFID II XML feed.")
-                .log("exportGeneratedFile: ${body}");
+                .log("generateMiFID: ${body}");
 
         // Export the MiFID II XML feed
         from("direct:exportGeneratedFile")
