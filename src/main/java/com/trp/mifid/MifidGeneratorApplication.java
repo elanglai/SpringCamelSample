@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.Map;
 
 @SpringBootApplication
 public class MifidGeneratorApplication {
@@ -26,6 +28,7 @@ public class MifidGeneratorApplication {
 		logger.info("Creating table employees");
 		jdbcTemplate.execute("drop table employees if exists");
 		jdbcTemplate.execute("create table employees(id serial, name varchar(255), surname varchar(255))");
+
 		jdbcTemplate.execute("insert into employees(name, surname) values('Jan', 'Kowalski')");
 		jdbcTemplate.execute("insert into employees(name, surname) values('Stefan', 'Nowak')");
 
@@ -37,6 +40,13 @@ public class MifidGeneratorApplication {
 		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(28, 2015, 2, 1)");
 		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(29, 2015, 3, 2)");
 		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(28, 2015, 2, 2)");
+
+		logger.warn("resultset: start");
+		List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from employees");
+		for (Map row: rows) {
+			logger.warn("name:{}, surname:{}", row.get("name"), row.get("surname"));
+		}
+		logger.warn("resultset: end");
 	}
 
 }
