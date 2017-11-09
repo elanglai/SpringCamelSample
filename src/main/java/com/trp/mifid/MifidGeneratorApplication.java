@@ -25,28 +25,17 @@ public class MifidGeneratorApplication {
 
 	@PostConstruct
 	private void initDB() {
-		logger.info("Creating table employees");
-		jdbcTemplate.execute("drop table employees if exists");
-		jdbcTemplate.execute("create table employees(id serial, name varchar(255), surname varchar(255))");
+		logger.info("Creating table accnt_ref");
+		jdbcTemplate.execute("drop table accnt_ref if exists");
+		jdbcTemplate.execute("create table accnt_ref(id serial, name varchar(255), surname varchar(255))");
 
-		jdbcTemplate.execute("insert into employees(name, surname) values('Jan', 'Kowalski')");
-		jdbcTemplate.execute("insert into employees(name, surname) values('Stefan', 'Nowak')");
+		logger.info("Creating table explicit_cost");
+		jdbcTemplate.execute("drop table explicit_cost if exists");
+		jdbcTemplate.execute("create table explicit_cost(id serial, name varchar(255), surname varchar(255))");
 
-
-		logger.info("Creating table allocations");
-		jdbcTemplate.execute("drop table allocations if exists");
-		jdbcTemplate.execute("create table allocations(id serial, week int, year int, shift int, employee_id bigint)");
-		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(29, 2015, 1, 1)");
-		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(28, 2015, 2, 1)");
-		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(29, 2015, 3, 2)");
-		jdbcTemplate.execute("insert into allocations(week, year, shift, employee_id) values(28, 2015, 2, 2)");
-
-		logger.warn("resultset: start");
-		List<Map<String, Object>> rows = jdbcTemplate.queryForList("select * from employees");
-		for (Map row: rows) {
-			logger.warn("name:{}, surname:{}", row.get("name"), row.get("surname"));
-		}
-		logger.warn("resultset: end");
+		logger.info("Creating table implicit_cost");
+		jdbcTemplate.execute("drop table implicit_cost if exists");
+		jdbcTemplate.execute("create table implicit_cost(id serial, name varchar(255), surname varchar(255))");
 	}
 
 }
