@@ -3,6 +3,7 @@ package com.trp.mifid.routes;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ValueBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import static org.apache.camel.LoggingLevel.*;
 
@@ -10,6 +11,18 @@ import static org.apache.camel.LoggingLevel.*;
 public class MiFidCamelRoute extends RouteBuilder {
 
     private static final String OPERATION_MODE = "operationMode";
+
+    @Value("${trp.mifid.dry.run.cron}")
+    private String dryRunCron;
+
+    @Value("${trp.mifid.final.run.cron}")
+    private String finalRunCron;
+
+    @Value("${trp.mifid.inbound.source.folder.path}")
+    private String sourcePath;
+
+    @Value("${trp.mifid.test.run.enabled}")
+    private boolean testRunEnabled;
 
     @Override
     public void configure() throws Exception {
@@ -19,14 +32,9 @@ public class MiFidCamelRoute extends RouteBuilder {
                 .routeId("onDemandTriggerRoute")
                 .routeDescription("Immediately runs the MiFID II data generation process.")
                 .log(INFO,"Process was manually triggered.")
+                //.setHeader(OPERATION_MODE, "TestRun")
                 .to("direct:executeProcess");
 
-        // Scheduled Trigger
-        from("direct:scheduledTrigger")
-                .routeId("scheduledTriggerRoute")
-                .routeDescription("Runs the MiFID II data generation process according to a pre-defined schedule.")
-                .log(INFO,"Process was automatically triggered.")
-                .to("direct:executeProcess");
 
         // Main MiFID Generation Process
         from("direct:executeProcess")
@@ -38,7 +46,7 @@ public class MiFidCamelRoute extends RouteBuilder {
                         .to("direct:loadSourceFiles")
                         .to("file://inbox?move=.done")
                         .bean("SourceFileValidator", "validate")
-                    .otherwise()
+                    .when(header(OPERATION_MODE).isEqualTo("FinalRun"))
                         .to("direct:loadSourceFiles")
                         .bean("SourceFileValidator", "validate")
                         .bean("MiFidGenerator", "generate")
@@ -46,20 +54,33 @@ public class MiFidCamelRoute extends RouteBuilder {
                 .end()
                 .to("direct:exportGeneratedFile");
 
-        // Load source files
-        // The inbound source files are deemed ready when the marker file "ready" is defined
-        from("file:/ReportingAutomations/TEST/InputFiles/MIFIDII?doneFileName=ready")
-                .routeId("loadSourceFiles")
-                .routeDescription("Load the source files into the in-memory data model.")
-                .log(ERROR, "Load source files was triggered")
-                //.unmarshal()
-                //.csv()
-                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})")
-                .log(INFO, "loadedSourceFiles: ${header.CamelFileName}");
+        // Test run - Load source files
+        from("file:"+sourcePath)
+                .routeId("testrun-loadSourceFiles")
+                .routeDescription("(Test run) Load the source files into the in-memory data model.")
+                .description("At startup, this route is NOT active.")
+                .autoStartup(testRunEnabled)
+                .log(INFO, "Loading the source file ${header.CamelFileName}")
+                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+
+        // Dry run - Load source files
+        from("file:"+sourcePath+"?scheduler=spring&scheduler.cron="+dryRunCron)
+                .routeId("dryrun-loadSourceFiles")
+                .routeDescription("(Dry run) Load the source files into the in-memory data model.")
+                .log(INFO, "Loading the source file ${header.CamelFileName}")
+                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+
+        // Final run - Load source files
+        from("file:"+sourcePath+"?scheduler=spring&scheduler.cron="+finalRunCron)
+                .routeId("finalrun-loadSourceFiles")
+                .routeDescription("(Final run) Load the source files into the in-memory data model.")
+                .log(INFO, "Loading the source file ${header.CamelFileName}")
+                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+
 
         // If an file error is encountered, Camel's emdpoin, the exception is seet to direct:file-error
         from("direct:file-error")
-                .routeId("fileErrorRoutr")
+                .routeId("fileErrorRoute")
                 .log(ERROR, "File error detected");
 
         // Generate the MiFID summary result
@@ -73,6 +94,7 @@ public class MiFidCamelRoute extends RouteBuilder {
                 .routeId("exportGeneratedFile")
                 .routeDescription("Generated the MiFID II XML feed.")
                 .log("exportGeneratedFile: ${body}");
+
     }
 
 
