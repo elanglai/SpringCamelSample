@@ -1,8 +1,10 @@
 package com.trp.mifid.routes;
 
+import com.trp.mifid.config.AppConfig;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ValueBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import static org.apache.camel.LoggingLevel.*;
@@ -12,17 +14,8 @@ public class MiFidCamelRoute extends RouteBuilder {
 
     private static final String OPERATION_MODE = "operationMode";
 
-    @Value("${trp.mifid.dry.run.cron}")
-    private String dryRunCron;
-
-    @Value("${trp.mifid.final.run.cron}")
-    private String finalRunCron;
-
-    @Value("${trp.mifid.inbound.source.folder.path}")
-    private String sourcePath;
-
-    @Value("${trp.mifid.test.run.enabled}")
-    private boolean testRunEnabled;
+    @Autowired
+    private AppConfig appConfig;
 
     @Override
     public void configure() throws Exception {
@@ -45,37 +38,37 @@ public class MiFidCamelRoute extends RouteBuilder {
                     .when(header(OPERATION_MODE).isEqualTo("DryRun"))
                         .to("direct:loadSourceFiles")
                         .to("file://inbox?move=.done")
-                        .bean("SourceFileValidator", "validate")
+                        .bean("SourceFileValidatorImpl", "validate")
                     .when(header(OPERATION_MODE).isEqualTo("FinalRun"))
                         .to("direct:loadSourceFiles")
-                        .bean("SourceFileValidator", "validate")
-                        .bean("MiFidGenerator", "generate")
+                        .bean("SourceFileValidatorImpl", "validate")
+                        .bean("MiFidGeneratorImpl", "generate")
                         .to("direct:exportGeneratedFile")
                 .end()
                 .to("direct:exportGeneratedFile");
 
         // Test run - Load source files
-        from("file:"+sourcePath)
+        from("file:" + appConfig.getSourcePath())
                 .routeId("testrun-loadSourceFiles")
                 .routeDescription("(Test run) Load the source files into the in-memory data model.")
                 .description("At startup, this route is NOT active.")
-                .autoStartup(testRunEnabled)
+                .autoStartup(appConfig.isTestRunEnabled())
                 .log(INFO, "Loading the source file ${header.CamelFileName}")
-                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+                .bean("SourceFileImportImpl", "importSource(${header.CamelFileName}, ${body})");
 
         // Dry run - Load source files
-        from("file:"+sourcePath+"?scheduler=spring&scheduler.cron="+dryRunCron)
+        from("file:" + appConfig.getSourcePath() + "?scheduler=spring&scheduler.cron=" + appConfig.getDryRunCron())
                 .routeId("dryrun-loadSourceFiles")
                 .routeDescription("(Dry run) Load the source files into the in-memory data model.")
                 .log(INFO, "Loading the source file ${header.CamelFileName}")
-                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+                .bean("SourceFileImportImpl", "importSource(${header.CamelFileName}, ${body})");
 
         // Final run - Load source files
-        from("file:"+sourcePath+"?scheduler=spring&scheduler.cron="+finalRunCron)
+        from("file:" + appConfig.getSourcePath() + "?scheduler=spring&scheduler.cron=" + appConfig.getFinalRunCron())
                 .routeId("finalrun-loadSourceFiles")
                 .routeDescription("(Final run) Load the source files into the in-memory data model.")
                 .log(INFO, "Loading the source file ${header.CamelFileName}")
-                .bean("SourceFileImport", "importSource(${header.CamelFileName}, ${body})");
+                .bean("SourceFileImportImpl", "importSource(${header.CamelFileName}, ${body})");
 
 
         // If an file error is encountered, Camel's emdpoin, the exception is seet to direct:file-error

@@ -1,0 +1,46 @@
+# Tomcat Server Config
+server:
+  port: 8181
+
+# Security Config
+management:
+  security:
+    enabled: false
+
+# Logging Config
+logging:
+  level:
+    #ROOT: DEBUG
+    com.trp.mifid: DEBUG
+  pattern:
+    console: "%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n"
+    file: "%d{dd-MM-yyyy HH:mm:ss.SSS} %magenta([%thread]) %highlight(%-5level) %logger.%M - %msg%n"
+  file: /log/MiFidGenerator.log
+
+# H2 DB Config
+spring:
+  datasource:
+    url: jdbc:h2:mem:dbname
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+trp:
+  mifid:
+    # MiFID Filename Matching Regular Expression
+    implicit.costs.filename.regex: CUSTOM_MiFID_II_ImplicitCosts_
+    explicit.costs.filename.regex: CUSTOM_MiFID_II_ExplicitCosts_
+    portfolio.account.filename.regex: Portfolio Account CUSTOM_MiFID_II_AccountRefernce_
+
+    # Dry run scheduled @4am on day 12 to 16
+    dry.run.cron: 0 0 4 12-16 * *
+
+    # Formal run is scheduled @4am on day 17
+    final.run.cron: 0 0 4 18 * *
+
+    # Path to folder where the inbound source files are found
+    inbound.source.folder.path: /ReportingAutomations/DEV/InputFiles/MIFIDII
+
+    # Test run execution indicator.  By default it's disabled.
+    test.run:
+        enabled: false
