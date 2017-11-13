@@ -5,15 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonUtil {
 
-    private final AppLogger logger;
-    private final ObjectMapper mapper;
+    private static final AppLogger logger = new AppLogger(JsonUtil.class);
+    private static final ObjectMapper mapper = new ObjectMapper();
 
-    public JsonUtil() {
-        logger = new AppLogger(this.getClass());
-        mapper = new ObjectMapper();
+    private JsonUtil() {
     }
 
-    public String toJson(Object obj) {
+    public static String toJson(Object obj) {
         if (obj==null) {
             return "null";
         }
