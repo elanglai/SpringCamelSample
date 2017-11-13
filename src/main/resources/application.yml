@@ -1,6 +1,6 @@
 # Tomcat Server Config
 server:
-  port: 8181
+  port: 8182
 
 # Security Config
 management:
@@ -20,10 +20,16 @@ logging:
 # H2 DB Config
 spring:
   datasource:
-    url: jdbc:h2:mem:dbname
+    url: jdbc:h2:mem:mifid-db
     driverClassName: org.h2.Driver
-    username: sa
-    password:
+  # Enable H2 web console
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+        trace: true
+      path: /h2-console
 
 trp:
   mifid:
@@ -36,7 +42,7 @@ trp:
     dry.run.cron: 0 0 4 12-16 * *
 
     # Formal run is scheduled @4am on day 17
-    final.run.cron: 0 0 4 18 * *
+    final.run.cron: 0 0 4 17 * *
 
     # Path to folder where the inbound source files are found
     inbound.source.folder.path: /ReportingAutomations/DEV/InputFiles/MIFIDII
