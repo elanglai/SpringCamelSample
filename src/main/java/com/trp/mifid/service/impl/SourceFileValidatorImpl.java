@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Component(value="SourceFileValidatorImpl")
+@Component(value="SourceFileValidator")
 public class SourceFileValidatorImpl implements com.trp.mifid.service.SourceFileValidator {
 
     final Logger logger = LoggerFactory.getLogger(SourceFileValidatorImpl.class);

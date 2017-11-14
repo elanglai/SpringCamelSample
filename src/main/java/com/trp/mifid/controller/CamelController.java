@@ -6,10 +6,13 @@ import com.trp.mifid.util.JsonUtil;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,21 +30,20 @@ public class CamelController {
     ProducerTemplate producerTemplate;
 
     @RequestMapping(value = "/run")
-    public String startOnDemandProcess() {
+    public ResponseEntity startOnDemandProcess() {
         try {
             producerTemplate.sendBody("direct:onDemandTrigger", "Manually trigger the MiFID generation process");
         }
         catch(Exception e) {
-            return "FAILED";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
 
-        return "OK";
+        return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/mifid")
-    public String retrieveMiFid() {
-        // Retrieve the result
-        List<MiFidDetail> miFidDetails = miFidDAO.retrieveMfidDetails();
-        return JsonUtil.toJson(miFidDetails);
+    @RequestMapping(value = "/mifid", produces = "application/json")
+    @ResponseBody
+    public List<MiFidDetail> retrieveMiFid() {
+        return miFidDAO.retrieveMfidDetails();
     }
 }

@@ -39,7 +39,10 @@ trp:
     portfolio.account.filename.regex: Portfolio Account CUSTOM_MiFID_II_AccountRefernce_
 
     # Dry run scheduled @4am on day 12 to 16
-    dry.run.cron: 0 0 4 12-16 * *
+    #dry.run.cron: 0 0 4 12-16 * *
+    # Dry run scheduled to run every minute
+    # seconds minutes hours day-of-month month day-of-week
+    dry.run.cron: 0 */1 * * * *
 
     # Formal run is scheduled @4am on day 17
     final.run.cron: 0 0 4 17 * *
@@ -47,6 +50,6 @@ trp:
     # Path to folder where the inbound source files are found
     inbound.source.folder.path: /ReportingAutomations/DEV/InputFiles/MIFIDII
 
-    # Test run execution indicator.  By default it's disabled.
+    # Test run execution indicator.  By default it's disabled. QA Can override this to test
     test.run:
         enabled: false

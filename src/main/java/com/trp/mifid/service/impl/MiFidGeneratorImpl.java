@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-@Component(value="MiFidGeneratorImpl")
+@Component(value="MiFidGenerator")
 public class MiFidGeneratorImpl implements com.trp.mifid.service.MiFidGenerator {
 
     final Logger logger = LoggerFactory.getLogger(MiFidGeneratorImpl.class);
